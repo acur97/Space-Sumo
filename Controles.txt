@@ -1,0 +1,9 @@
+Jugador 1:
+-movimiento = W A S D
+-salto = Shift izquierdo
+-poder = alt izquierdo
+
+Jugador 2:
+-movimiento = flechas
+-salto = shift derecho
+-poder = alt derecho
