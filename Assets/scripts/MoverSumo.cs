@@ -1,9 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class MoverSumo : MonoBehaviour {
 
+    public VariableJoystick joystick1;
+    public Transform jug1;
     public CamaraVarios camV;
 	public enum Jugadores {Jugador1, Jugador2};
     public Jugadores Jugador;
@@ -20,51 +23,56 @@ public class MoverSumo : MonoBehaviour {
     private Rigidbody rb;
     private bool puedeExplotar = true;
     private Quaternion zero = new Quaternion(0, 0, 0, 0);
+    private NavMeshAgent agent;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        if (Jugador == Jugadores.Jugador2)
+        {
+            agent = GetComponent<NavMeshAgent>();
+        }
     }
 
     private void Update()
     {
         if (Jugador == Jugadores.Jugador1)
         {
-            Vector3 MoverSumo = new Vector3(Input.GetAxis("Horizontal2") * Velocidad, 0, Input.GetAxis("Vertical2") * Velocidad);
+            //Vector3 MoverSumo = new Vector3(Input.GetAxis("Horizontal2") * Velocidad, 0, Input.GetAxis("Vertical2") * Velocidad);
+            Vector3 MoverSumo = new Vector3(joystick1.Horizontal * Velocidad, 0, joystick1.Vertical * Velocidad);
             transform.Translate(MoverSumo);
-
-            if (transform.localPosition.y < 0.51 && Input.GetKeyDown(KeyCode.LeftShift))
-            {
-                Vector3 salto = new Vector3(0, FuerzaSalto, 0);
-                rb.AddForce(salto);
-            }
-
-            if (Input.GetKeyDown(KeyCode.LeftAlt))
-            {
-                if (puedeExplotar)
-                {
-                    Explotar();
-                }
-            }
         }
         if (Jugador == Jugadores.Jugador2)
         {
-            Vector3 MoverSumo = new Vector3(Input.GetAxis("Horizontal") * Velocidad, 0, Input.GetAxis("Vertical") * Velocidad);
-            transform.Translate(MoverSumo);
-
-            if (transform.localPosition.y < 0.51 && Input.GetKeyDown(KeyCode.RightShift))
+            if (Vector3.Distance(jug1.position, transform.position) > 3)
             {
-                Vector3 salto = new Vector3(0, FuerzaSalto, 0);
-                rb.AddForce(salto);
+                agent.destination = jug1.position;
             }
-
-            if (Input.GetKeyDown(KeyCode.RightAlt))
+            else
             {
-                if (puedeExplotar)
-                {
-                    Explotar();
-                }
+                ExplotarBtn();
+                //Salto();
             }
+            //Vector3 MoverSumo = new Vector3(Input.GetAxis("Horizontal") * Velocidad, 0, Input.GetAxis("Vertical") * Velocidad);
+            //Vector3 MoverSumo = new Vector3(joystick2.Horizontal * Velocidad, 0, joystick2.Vertical * Velocidad);
+            //transform.Translate(MoverSumo);
+        }
+    }
+
+    public void ExplotarBtn()
+    {
+        if (puedeExplotar)
+        {
+            Explotar();
+        }
+    }
+
+    public void Salto()
+    {
+        if (transform.localPosition.y < 0.51)
+        {
+            Vector3 salto = new Vector3(0, FuerzaSalto, 0);
+            rb.AddForce(salto);
         }
     }
 
@@ -94,9 +102,27 @@ public class MoverSumo : MonoBehaviour {
         Velocidad = Velocidad * 2;
     }
 
-    private void OnCollisionEnter(Collision collision)
+    //private void OnCollisionEnter(Collision collision)
+    //{
+    //    if (collision.transform.tag == "Muerte")
+    //    {
+    //        if (Jugador == Jugadores.Jugador1)
+    //        {
+    //            alGanar.Ganar(1);
+    //        }
+    //        if (Jugador == Jugadores.Jugador2)
+    //        {
+    //            alGanar.Ganar(2);
+    //        }
+    //        Destroy(collision.gameObject);
+    //        Destroy(gameObject);
+    //        camV.enabled = false;
+    //    }
+    //}
+
+    private void OnTriggerEnter(Collider other)
     {
-        if (collision.transform.tag == "Muerte")
+        if (other.CompareTag("Muerte"))
         {
             if (Jugador == Jugadores.Jugador1)
             {
@@ -106,7 +132,7 @@ public class MoverSumo : MonoBehaviour {
             {
                 alGanar.Ganar(2);
             }
-            Destroy(collision.gameObject);
+            Destroy(other.gameObject);
             Destroy(gameObject);
             camV.enabled = false;
         }
